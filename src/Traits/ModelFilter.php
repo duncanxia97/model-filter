@@ -62,7 +62,7 @@ trait ModelFilter
      */
     private function validateFilterField($whereKVs)
     {
-        if (class_exists($this->modelColumn, false)) {
+        if (isset($this->modelColumn) && class_exists($this->modelColumn, false)) {
             $names      = call_user_func([$this->modelColumn, 'names']);
             $diffFields = array_diff(array_unique($this->whereFieldIndex), $names);
             if (!empty($diffFields) && $this->checkFilterFieldDiff) {
@@ -112,7 +112,7 @@ trait ModelFilter
                         continue;
                     }
                     $this->whereFieldIndex[] = $field;
-                    if (is_callable([$this->modelColumn, 'convert'])) {
+                    if (isset($this->modelColumn) && is_callable([$this->modelColumn, 'convert'])) {
                         $field = call_user_func([$this->modelColumn, 'convert'], $field)?->field() ?: $field;
                     }
                     if (is_array($val)) {
