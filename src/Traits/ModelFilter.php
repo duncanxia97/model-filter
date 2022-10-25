@@ -15,7 +15,7 @@ use Illuminate\Validation\ValidationException;
 
 /**
  * @mixin Model
- * @method Builder modelFilter()
+ * @method Builder modelFilter(ModelColumnFilterInterface|null|string $modelColumn = null)
  * @property ModelColumnFilterInterface $modelColumn
  * @property bool                       $checkFilterFieldDiff 是否开启检查筛选字段差异
  * @property bool                       $notValidFilterField  是否开启筛选字段验证
