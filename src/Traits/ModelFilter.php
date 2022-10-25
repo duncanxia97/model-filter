@@ -9,9 +9,9 @@ namespace Fatbit\ModelFilter\Traits;
 use Exception;
 use Fatbit\ModelFilter\Interfaces\ModelColumnFilterInterface;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Query\Expression;
 use Illuminate\Support\Str;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Validation\ValidationException;
 
 /**
  * @mixin Model
@@ -27,18 +27,26 @@ trait ModelFilter
 
     private $whereFieldIndex = [];
 
+    /**
+     * @var string|null|ModelColumnFilterInterface
+     */
+    private ?string $__modelColumn = null;
+
 
     /**
      *  模型筛选
      *
-     * @param Builder $query
+     * @param Builder                                $query
+     * @param string|null|ModelColumnFilterInterface $modelColumn
      *
      * @return Builder
+     * @throws ValidationException
      */
-    public function scopeModelFilter($query)
+    public function scopeModelFilter($query, ?string $modelColumn = null)
     {
         $filter = request()?->input('__filter');
         if ($filter && is_array($filter)) {
+            $this->__modelColumn = $modelColumn;
             $this->getQueryWhereValues($query->getQuery()->wheres);
             $index = count($this->whereVals) - 1;
             $index = $index < 0 ? 0 : $index;
@@ -62,16 +70,19 @@ trait ModelFilter
      */
     private function validateFilterField($whereKVs)
     {
-        if (isset($this->modelColumn) && class_exists($this->modelColumn, false)) {
-            $names      = call_user_func([$this->modelColumn, 'names']);
+        if (property_exists($this, 'modelColumn')) {
+            $modelColumn = $this->__modelColumn ?: $this->modelColumn;
+        }
+        if ($modelColumn && class_exists($modelColumn, false)) {
+            $names      = call_user_func([$modelColumn, 'names']);
             $diffFields = array_diff(array_unique($this->whereFieldIndex), $names);
-            if (!empty($diffFields) && $this->checkFilterFieldDiff) {
+            if (!empty($diffFields) && property_exists($this, 'checkFilterFieldDiff') && $this->checkFilterFieldDiff) {
                 if (is_callable([$this, 'throwFilterFieldDiffError'])) {
                     call_user_func([$this, 'throwFilterFieldDiffError'], $diffFields);
                 }
                 throw new Exception('this names(' . implode(',', $diffFields) . ') not exist!');
             }
-            if (!$this->notValidFilterField) {
+            if (property_exists($this, 'notValidFilterField') && !$this->notValidFilterField) {
                 return;
             }
             $data = [];
@@ -80,7 +91,7 @@ trait ModelFilter
                     $data[$field] = [];
                 }
                 /** @var ModelColumnFilterInterface $enum */
-                $enum = call_user_func([$this->modelColumn, 'convert'], $field);
+                $enum = call_user_func([$modelColumn, 'convert'], $field);
                 if (!empty($enum?->rules())) {
                     validator(
                                           [$field => $whereKVs[$index]],
@@ -112,8 +123,8 @@ trait ModelFilter
                         continue;
                     }
                     $this->whereFieldIndex[] = $field;
-                    if (isset($this->modelColumn) && is_callable([$this->modelColumn, 'convert'])) {
-                        $field = call_user_func([$this->modelColumn, 'convert'], $field)?->field() ?: $field;
+                    if (isset($this->__modelColumn) && is_callable([$this->__modelColumn, 'convert'])) {
+                        $field = call_user_func([$this->__modelColumn, 'convert'], $field)?->field() ?: $field;
                     }
                     if (is_array($val)) {
                         if (isset($val[0]) && count($val) > 4) {
