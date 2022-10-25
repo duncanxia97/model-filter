@@ -47,6 +47,9 @@ trait ModelFilter
         $filter = request()?->input('__filter');
         if ($filter && is_array($filter)) {
             $this->__modelColumn = $modelColumn;
+            if (property_exists($this, 'modelColumn')) {
+                $this->__modelColumn = $modelColumn ?: $this->modelColumn;
+            }
             $this->getQueryWhereValues($query->getQuery()->wheres);
             $index = count($this->whereVals) - 1;
             $index = $index < 0 ? 0 : $index;
@@ -70,11 +73,9 @@ trait ModelFilter
      */
     private function validateFilterField($whereKVs)
     {
-        if (property_exists($this, 'modelColumn')) {
-            $modelColumn = $this->__modelColumn ?: $this->modelColumn;
-        }
-        if ($modelColumn && class_exists($modelColumn, false)) {
-            $names      = call_user_func([$modelColumn, 'names']);
+
+        if ($this->__modelColumn && class_exists($this->__modelColumn, false)) {
+            $names      = call_user_func([$this->__modelColumn, 'names']);
             $diffFields = array_diff(array_unique($this->whereFieldIndex), $names);
             if (!empty($diffFields) && property_exists($this, 'checkFilterFieldDiff') && $this->checkFilterFieldDiff) {
                 if (is_callable([$this, 'throwFilterFieldDiffError'])) {
@@ -91,7 +92,7 @@ trait ModelFilter
                     $data[$field] = [];
                 }
                 /** @var ModelColumnFilterInterface $enum */
-                $enum = call_user_func([$modelColumn, 'convert'], $field);
+                $enum = call_user_func([$this->__modelColumn, 'convert'], $field);
                 if (!empty($enum?->rules())) {
                     validator(
                                           [$field => $whereKVs[$index]],
