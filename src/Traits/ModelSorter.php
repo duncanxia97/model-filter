@@ -9,6 +9,7 @@ namespace Fatbit\ModelFilter\Traits;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 use Illuminate\Database\Eloquent\Builder;
+
 /**
  * @mixin Model
  * @method Builder modelSort(array $canSortField = [])
