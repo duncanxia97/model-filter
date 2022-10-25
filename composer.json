@@ -2,7 +2,7 @@
   "name": "fatbit/model-filter",
   "description": "this is a laravel model auto filter",
   "keywords": ["php8.1", "model", "auto filter", "laravel"],
-  "version": "0.1",
+  "minimum-stability": "stable",
   "type": "library",
   "license": "MIT",
   "authors": [
