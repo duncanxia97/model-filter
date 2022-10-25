@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\Builder;
  * @method Builder modelSort(array $canSortField = [])
  * @property array $canSortField 可排序字段
  */
-class ModelSorter
+trait ModelSorter
 {
 
     /**
