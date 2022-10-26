@@ -195,8 +195,11 @@ trait ModelFilter
                 $this->whereVals[] = $where['values'];
                 continue;
             }
-
-            $this->whereVals[] = Str::between($where['value'], '%', '%');
+            if ($where['type'] === 'Null') {
+                $this->whereVals[] = null;
+                continue;
+            }
+            $this->whereVals[] = Str::between($where['value'] ?? null, '%', '%');
         }
     }
 
