@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Builder;
 
 /**
  * @mixin Model
- * @method Builder modelSort(array $canSortField = [])
+ * @method Builder|static modelSort(array $canSortField = [])
  * @property array $canSortField 可排序字段
  */
 trait ModelSorter
