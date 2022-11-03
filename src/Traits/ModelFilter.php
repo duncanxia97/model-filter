@@ -114,13 +114,13 @@ trait ModelFilter
      * @param array                                 $filter
      * @param                                       $boolean
      */
-    private function queryFilter($query, array $filter, $boolean = 'and')
+    private function queryFilter($query, array $filter, $boolean = 'and', $lastBoolean = 'and')
     {
         $query->where(
-            function ($query) use ($filter) {
+            function ($query) use ($filter, $boolean) {
                 foreach ($filter as $field => $val) {
                     if (is_array($val) && in_array(strtolower($field), ['and', 'or', 'and not', 'or not'])) {
-                        $this->queryFilter($query, $val, $field);
+                        $this->queryFilter($query, $val, $field, lastBoolean: $boolean);
                         continue;
                     }
                     $this->whereFieldIndex[] = $field;
@@ -129,7 +129,7 @@ trait ModelFilter
                     }
                     if (is_array($val)) {
                         if (isset($val[0]) && count($val) > 4) {
-                            $query->whereIn($field, $val);
+                            $query->whereIn($field, $val, boolean: $boolean);
 
                             continue;
                         }
@@ -137,6 +137,7 @@ trait ModelFilter
                             if (Str::endsWith($val[0], 'like')) {
                                 [$val[0], $val[1]] = $this->toWhereCondition($val[0], $val[1]);
                             }
+                            $val['boolean'] = $boolean;
                             $query->where($field, ...$val);
                             continue;
                         }
@@ -144,35 +145,37 @@ trait ModelFilter
                             $k = strtolower($k);
                             if (Str::endsWith($k, 'like')) {
                                 $where = $this->toWhereCondition($k, $v);
-                                $query->where($field, $where[0], $where[1]);
+                                $query->where($field, $where[0], $where[1], boolean: $boolean);
 
                                 continue;
                             }
                             if (is_callable([$query, 'where' . Str::studly($k)])) {
 
                                 if (is_array($v) && isset($v[0]) && $k !== 'in') {
+                                    $v['boolean'] = $boolean;
                                     $query->{'where' . Str::studly($k)}($field, ...$v);
 
                                     continue;
                                 }
 
-                                $query->{'where' . Str::studly($k)}($field, $v);
+                                $query->{'where' . Str::studly($k)}($field, $v, boolean: $boolean);
 
                                 continue;
                             }
                             if (is_array($v) && isset($v[0])) {
+                                $v['boolean'] = $boolean;
                                 $query->where($field, $k, ...$v);
 
                                 continue;
                             }
-                            $query->where($field, $k, $v);
+                            $query->where($field, $k, $v, boolean: $boolean);
                         }
                         continue;
                     }
-                    $query->where($field, $val);
+                    $query->where($field, $val, boolean: $boolean);
                 }
             },
-            boolean: strtolower($boolean)
+            boolean: strtolower($lastBoolean)
         );
     }
 
