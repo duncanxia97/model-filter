@@ -127,6 +127,7 @@ trait ModelFilter
                     if (isset($this->__modelColumn) && is_callable([$this->__modelColumn, 'convert'])) {
                         $field = call_user_func([$this->__modelColumn, 'convert'], $field)?->field() ?: $field;
                     }
+                    $field = Str::snake($field);
                     if (is_array($val)) {
                         if (isset($val[0]) && count($val) > 4) {
                             $query->whereIn($field, $val, boolean: $boolean);
