@@ -23,9 +23,13 @@ use Illuminate\Validation\ValidationException;
  */
 trait ModelFilter
 {
-    private $whereVals       = [];
+    private $whereVals             = [];
 
-    private $whereFieldIndex = [];
+    private $whereFieldIndex       = [];
+
+    private array $whereConditionFormula = [
+        'eq', '=', 'neq', '<>', 'gt', '>', 'egt', '>=', 'lt', '<', 'elt', '<='
+    ];
 
     /**
      * @var string|null|ModelColumnFilterInterface
@@ -129,11 +133,7 @@ trait ModelFilter
                     }
                     $field = Str::snake($field);
                     if (is_array($val)) {
-                        if(isset($val[0])){
-                            if(is_callable([$query, 'where' . Str::studly($val[0])])){
-                                $query->{'where' . Str::studly($val[0])}($field, $val[1], boolean: $boolean);
-                                continue;
-                            }
+                        if (isset($val[0])) {
                             if (count($val) > 4) {
                                 $query->whereIn($field, $val, boolean: $boolean);
 
@@ -145,8 +145,16 @@ trait ModelFilter
                                 $query->where($field, ...$val);
                                 continue;
                             }
+                            if (!is_numeric($val[0]) && !in_array($val[0], $this->whereConditionFormula)
+                                && is_callable(
+                                    [$query, 'where' . Str::studly($val[0])]
+                                )) {
+                                $query->{'where' . Str::studly($val[0])}($field, $val[1], boolean: $boolean);
+                                continue;
+                            }
                         }
                         foreach ($val as $k => $v) {
+
                             $k = strtolower($k);
                             if (Str::endsWith($k, 'like')) {
                                 $where = $this->toWhereCondition($k, $v);
@@ -155,13 +163,12 @@ trait ModelFilter
                                 continue;
                             }
                             if (!is_numeric($k) && is_callable([$query, 'where' . Str::studly($k)])) {
-
                                 $query->{'where' . Str::studly($k)}($field, $v, boolean: $boolean);
 
                                 continue;
                             }
                             if (is_array($v) && isset($v[0])) {
-                                if(is_callable([$query, 'where' . Str::studly($v[0])])){
+                                if (is_callable([$query, 'where' . Str::studly($v[0])])) {
                                     $v['boolean'] = $boolean;
                                     $query->{'where' . Str::studly($v[0])}($field, $v[1]);
 
