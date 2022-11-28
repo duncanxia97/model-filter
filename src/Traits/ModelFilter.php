@@ -129,18 +129,22 @@ trait ModelFilter
                     }
                     $field = Str::snake($field);
                     if (is_array($val)) {
-                        if (isset($val[0]) && count($val) > 4) {
-                            $query->whereIn($field, $val, boolean: $boolean);
-
-                            continue;
-                        }
-                        if (isset($val[0]) && count($val) < 4) {
-                            if (Str::endsWith($val[0], 'like')) {
-                                [$val[0], $val[1]] = $this->toWhereCondition($val[0], $val[1]);
+                        if(isset($val[0])){
+                            if(is_callable([$query, 'where' . Str::studly($val[0])])){
+                                $query->{'where' . Str::studly($val[0])}($field, $val[1], boolean: $boolean);
+                                continue;
                             }
-                            $val['boolean'] = $boolean;
-                            $query->where($field, ...$val);
-                            continue;
+                            if (count($val) > 4) {
+                                $query->whereIn($field, $val, boolean: $boolean);
+
+                                continue;
+                            }
+                            if (Str::endsWith($val[0], 'like') && count($val) < 4) {
+                                [$val[0], $val[1]] = $this->toWhereCondition($val[0], $val[1]);
+                                $val['boolean'] = $boolean;
+                                $query->where($field, ...$val);
+                                continue;
+                            }
                         }
                         foreach ($val as $k => $v) {
                             $k = strtolower($k);
@@ -150,20 +154,19 @@ trait ModelFilter
 
                                 continue;
                             }
-                            if (is_callable([$query, 'where' . Str::studly($k)])) {
-
-                                if (is_array($v) && isset($v[0]) && $k !== 'in') {
-                                    $v['boolean'] = $boolean;
-                                    $query->{'where' . Str::studly($k)}($field, ...$v);
-
-                                    continue;
-                                }
+                            if (!is_numeric($k) && is_callable([$query, 'where' . Str::studly($k)])) {
 
                                 $query->{'where' . Str::studly($k)}($field, $v, boolean: $boolean);
 
                                 continue;
                             }
                             if (is_array($v) && isset($v[0])) {
+                                if(is_callable([$query, 'where' . Str::studly($v[0])])){
+                                    $v['boolean'] = $boolean;
+                                    $query->{'where' . Str::studly($v[0])}($field, $v[1]);
+
+                                    continue;
+                                }
                                 $v['boolean'] = $boolean;
                                 $query->where($field, $k, ...$v);
 
