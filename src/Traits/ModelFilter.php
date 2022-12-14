@@ -246,8 +246,8 @@ trait ModelFilter
     {
         return match ($type) {
             'like'       => ['like', '%' . $value . '%'],
-            'right like' => ['like', $value . '%'],
-            'left like'  => ['like', '%' . $value],
+            'right like' => ['like', '%' . $value],
+            'left like'  => ['like', $value . '%'],
             default      => [$type, $value],
         };
     }
