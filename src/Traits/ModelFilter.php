@@ -133,9 +133,15 @@ trait ModelFilter
     {
         $query->where(
             function ($query) use ($filter, $boolean) {
+                $whereHas = [];
                 foreach ($filter as $field => $val) {
                     if (is_array($val) && in_array(strtolower($field), ['and', 'or', 'and not', 'or not'])) {
                         $this->queryFilter($query, $val, $field, lastBoolean: $boolean);
+                        continue;
+                    }
+                    if (strpos($field, '.')) {
+                        [$with, $field] = explode('.', $field);
+                        $whereHas[$with][$field] = $val;
                         continue;
                     }
                     $this->whereFieldIndex[] = $field;
@@ -200,6 +206,9 @@ trait ModelFilter
                         continue;
                     }
                     $query->where($field, $val, boolean: $boolean);
+                }
+                foreach ($whereHas as $with => $filter) {
+                    $query->whereHas($with, fn($q) => $this->queryFilter($q, $filter, $boolean, lastBoolean: $boolean));
                 }
             },
             boolean: strtolower($lastBoolean)
