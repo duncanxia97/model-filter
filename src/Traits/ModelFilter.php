@@ -141,8 +141,12 @@ trait ModelFilter
                     }
                     if (strpos($field, '.')) {
                         [$with, $field] = explode('.', $field);
-                        $whereHas[$with][$field] = $val;
-                        continue;
+                        // 判断with是否存在
+                        if (in_array($with, $eagerLoad = $query->getEagerLoads()) || isset($eagerLoad[$with])) {
+                            $whereHas[$with][$field] = $val;
+                            continue;
+                        }
+
                     }
                     $this->whereFieldIndex[] = $field;
                     if (isset($this->__modelColumn) && is_callable([$this->__modelColumn, 'convert'])) {
