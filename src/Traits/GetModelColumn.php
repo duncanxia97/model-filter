@@ -115,7 +115,7 @@ trait GetModelColumn
             return $this->toRules($modelColumn?->rules);
         }
 
-        $method = 'get' . Str::studly($modelColumn) . 'Rules';
+        $method = 'get' . Str::studly($this->name) . 'Rules';
         if (method_exists($this, $method)) {
             return $this->toRules($this->{$method}() ?: $modelColumn?->rules);
         }
