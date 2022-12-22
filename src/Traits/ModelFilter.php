@@ -142,10 +142,10 @@ trait ModelFilter
                     if (strpos($field, '.')) {
                         [$with, $field] = explode('.', $field);
                         // 判断with是否存在
-                        if (in_array($with, $eagerLoad = $query->getEagerLoads()) || isset($eagerLoad[$with])) {
+//                        if (in_array($with, $eagerLoad = $query->getEagerLoads()) || isset($eagerLoad[$with])) {
                             $whereHas[$with][$field] = $val;
                             continue;
-                        }
+//                        }
 
                     }
                     $this->whereFieldIndex[] = $field;
