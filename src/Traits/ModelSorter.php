@@ -31,7 +31,7 @@ trait ModelSorter
         $sorts        = request()?->input('__sort');
         if ($sorts && is_array($sorts)) {
             foreach ($sorts as $field => $sort) {
-                if (isset($canSortField[$field]) || in_array($field, $canSortField)) {
+                if (empty($canSortField) || isset($canSortField[$field]) || in_array($field, $canSortField)) {
                     $query->orderBy($this->getSortField($field, $canSortField), $sort);
                 }
             }
