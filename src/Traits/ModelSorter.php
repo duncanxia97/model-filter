@@ -54,13 +54,13 @@ trait ModelSorter
     {
         $method = 'sort' . Str::studly($field);
         if (method_exists($this, $method)) {
-            return call_user_func([$this, $method], $field);
+            $field = call_user_func([$this, $method], $field);
         }
         if (isset($canSortField[$field])) {
-            return $canSortField[$field];
+            $field = $canSortField[$field];
         }
 
-        return $field;
+        return Str::snake($field);
     }
 
 }
