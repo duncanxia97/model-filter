@@ -133,6 +133,7 @@ trait ModelFilter
     {
         $query->where(
             function ($query) use ($filter, $boolean) {
+                /** @var Illuminate\Database\Query\Builder $query * */
                 $whereHas = [];
                 foreach ($filter as $field => $val) {
                     if (is_array($val) && in_array(strtolower($field), ['and', 'or', 'and not', 'or not'])) {
@@ -142,11 +143,11 @@ trait ModelFilter
                     if (strpos($field, '.')) {
                         [$with, $field] = explode('.', $field);
                         // 判断with是否存在
-//                        if (in_array($with, $eagerLoad = $query->getEagerLoads()) || isset($eagerLoad[$with])) {
+                        if (method_exists($this, $with)) {
                             $whereHas[$with][$field] = $val;
                             continue;
-//                        }
-
+                        }
+                        $field = $with . '.' . $field;
                     }
                     $this->whereFieldIndex[] = $field;
                     if (isset($this->__modelColumn) && is_callable([$this->__modelColumn, 'convert'])) {
@@ -167,7 +168,7 @@ trait ModelFilter
                                 continue;
                             }
                             if (!is_numeric($val[0])
-                                && in_array($val[0], $this->whereConditionFormula)) {
+                                && in_array($val[0], $query->getQuery()->operators ?? $this->whereConditionFormula)) {
                                 $query->where($field, $val[0], $val[1], boolean: $boolean);
                                 continue;
                             }
