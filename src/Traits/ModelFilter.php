@@ -150,9 +150,9 @@ trait ModelFilter
                         $field = $with . '.' . $field;
                     }
                     $this->whereFieldIndex[] = $field;
-                    if(is_array($this->__modelColumn) && isset($this->__modelColumn[$field])){
+                    if(is_array($this->__modelColumn) && (isset($this->__modelColumn[$field]) || isset($this->__modelColumn[Str::snake($field)]))){
                         // 快速匹配
-                        $field = value($this->__modelColumn[$field]);
+                        $field = value($this->__modelColumn[$field] ?? $this->__modelColumn[Str::snake($field)]);
                     }else if (isset($this->__modelColumn) && is_callable([$this->__modelColumn, 'convert'])) {
                         // model filter 匹配
                         $field = call_user_func([$this->__modelColumn, 'convert'], $field)?->field() ?: $field;
