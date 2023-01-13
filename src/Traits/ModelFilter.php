@@ -15,7 +15,7 @@ use Illuminate\Validation\ValidationException;
 
 /**
  * @mixin Model
- * @method Builder|static modelFilter(ModelColumnFilterInterface|null|string $modelColumn = null)
+ * @method Builder|static modelFilter(ModelColumnFilterInterface|string|array|null $modelColumn = null)
  * @property ModelColumnFilterInterface $modelColumn
  * @property bool                       $checkFilterFieldDiff 是否开启检查筛选字段差异
  * @property bool                       $notValidFilterField  是否开启筛选字段验证
@@ -45,7 +45,7 @@ trait ModelFilter
     /**
      * @var string|null|ModelColumnFilterInterface
      */
-    private ?string $__modelColumn = null;
+    private string|array|null $__modelColumn = null;
 
 
     /**
@@ -57,7 +57,7 @@ trait ModelFilter
      * @return Builder
      * @throws ValidationException
      */
-    public function scopeModelFilter($query, ?string $modelColumn = null)
+    public function scopeModelFilter($query, string|array|null $modelColumn = null)
     {
         $filter = request()?->input('__filter');
         if ($filter && is_array($filter)) {
@@ -89,7 +89,7 @@ trait ModelFilter
     private function validateFilterField($whereKVs)
     {
 
-        if ($this->__modelColumn && class_exists($this->__modelColumn, false)) {
+        if ($this->__modelColumn && !is_array($this->__modelColumn) && class_exists($this->__modelColumn, false)) {
             $names      = call_user_func([$this->__modelColumn, 'names']);
             $diffFields = array_diff(array_unique($this->whereFieldIndex), $names);
             if (!empty($diffFields) && property_exists($this, 'checkFilterFieldDiff') && $this->checkFilterFieldDiff) {
@@ -150,7 +150,11 @@ trait ModelFilter
                         $field = $with . '.' . $field;
                     }
                     $this->whereFieldIndex[] = $field;
-                    if (isset($this->__modelColumn) && is_callable([$this->__modelColumn, 'convert'])) {
+                    if(is_array($this->__modelColumn) && isset($this->__modelColumn[$field])){
+                        // 快速匹配
+                        $field = value($this->__modelColumn[$field]);
+                    }else if (isset($this->__modelColumn) && is_callable([$this->__modelColumn, 'convert'])) {
+                        // model filter 匹配
                         $field = call_user_func([$this->__modelColumn, 'convert'], $field)?->field() ?: $field;
                     }
                     $field = Str::snake($field);
