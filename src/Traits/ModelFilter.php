@@ -147,17 +147,11 @@ trait ModelFilter
                             $whereHas[$with][$field] = $val;
                             continue;
                         }
+                        $field = $this->fieldConvert($field, $with);
                         $field = $with . '.' . $field;
                     }
                     $this->whereFieldIndex[] = $field;
-                    if(is_array($this->__modelColumn) && (isset($this->__modelColumn[$field]) || isset($this->__modelColumn[Str::snake($field)]))){
-                        // 快速匹配
-                        $field = value($this->__modelColumn[$field] ?? $this->__modelColumn[Str::snake($field)]);
-                    }else if (isset($this->__modelColumn) && is_callable([$this->__modelColumn, 'convert'])) {
-                        // model filter 匹配
-                        $field = call_user_func([$this->__modelColumn, 'convert'], $field)?->field() ?: $field;
-                    }
-                    $field = Str::snake($field);
+                    $field                   = $this->fieldConvert($field);
                     if (is_array($val)) {
                         if (isset($val[0])) {
                             if (count($val) > 4) {
@@ -268,5 +262,43 @@ trait ModelFilter
             'left like'  => ['like', $value . '%'],
             default      => [$type, $value],
         };
+    }
+
+    /**
+     * 字段转换
+     *
+     * @author XJ.
+     * Date: 2023/1/13 0013
+     *
+     * @param string       $field 查询字段
+     * @param false|string $with  with字符串
+     *
+     * @return mixed|string
+     */
+    protected function fieldConvert(string $field, false|string $with = false)
+    {
+        $lastField = $field;
+        if (is_string($with)) {
+            $field = is_array($this->__modelColumn) ? $with . ':' . $field : $with . '__' . $field;
+        }
+        $lastConvertField = $field;
+        $fieldSnake       = Str::snake($field);
+        if (is_array($this->__modelColumn) && (isset($this->__modelColumn[$field]) || isset($this->__modelColumn[$fieldSnake]))) {
+            // 快速匹配
+            $field = value($this->__modelColumn[$field] ?? $this->__modelColumn[$fieldSnake]) ?: $field;
+        } else if (isset($this->__modelColumn) && is_callable([$this->__modelColumn, 'convert'])) {
+            // model column 匹配
+            if (is_null(constant($this->__modelColumn . '::' . $fieldSnake))) {
+                $field = call_user_func([$this->__modelColumn, 'convert'], $fieldSnake)?->field() ?: $field;
+            } else {
+                $field = call_user_func([$this->__modelColumn, 'convert'], $field)?->field() ?: $field;
+            }
+        }
+        if ($field == $lastConvertField) {
+            // 如果没有匹配字段还原字段
+            $field = $lastField;
+        }
+
+        return Str::snake($field);
     }
 }
