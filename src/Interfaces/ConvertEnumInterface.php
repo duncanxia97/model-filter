@@ -6,9 +6,9 @@
 
 namespace Fatbit\ModelFilter\Interfaces;
 
-use UnitEnum;
+use BackedEnum;
 
-interface ConvertEnumInterface extends UnitEnum
+interface ConvertEnumInterface extends BackedEnum
 {
     public static function names(): array;
 

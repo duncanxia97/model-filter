@@ -288,10 +288,11 @@ trait ModelFilter
             $field = value($this->__modelColumn[$field] ?? $this->__modelColumn[$fieldSnake]) ?: $field;
         } else if (isset($this->__modelColumn) && is_callable([$this->__modelColumn, 'convert'])) {
             // model column 匹配
-            if (is_null(constant($this->__modelColumn . '::' . $fieldSnake))) {
-                $field = call_user_func([$this->__modelColumn, 'convert'], $fieldSnake)?->field() ?: $field;
+            $modelColumn = call_user_func([$this->__modelColumn, 'tryFrom'], $field);
+            if (!is_null($modelColumn)) {
+                $field = $modelColumn->field() ?: $field;
             } else {
-                $field = call_user_func([$this->__modelColumn, 'convert'], $field)?->field() ?: $field;
+                $field = call_user_func([$this->__modelColumn, 'tryFrom'], $fieldSnake)?->field() ?: $field;
             }
         }
         if ($field == $lastConvertField) {

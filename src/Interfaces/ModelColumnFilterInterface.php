@@ -6,7 +6,7 @@
 
 namespace Fatbit\ModelFilter\Interfaces;
 
-interface ModelColumnFilterInterface
+interface ModelColumnFilterInterface extends ConvertEnumInterface
 {
     /**
      * 获取属性

@@ -37,10 +37,7 @@ trait ConvertEnum
      */
     public static function convert($name): ?static
     {
-        try {
-            return constant(static::class . '::' . $name);
-        } catch (\Throwable $e) {
-            return null;
-        }
+        return self::tryFrom($name);
     }
+
 }
