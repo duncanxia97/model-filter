@@ -286,7 +286,7 @@ trait ModelFilter
         if (is_array($this->__modelColumn) && (isset($this->__modelColumn[$field]) || isset($this->__modelColumn[$fieldSnake]))) {
             // 快速匹配
             $field = value($this->__modelColumn[$field] ?? $this->__modelColumn[$fieldSnake]) ?: $field;
-        } else if (isset($this->__modelColumn) && is_callable([$this->__modelColumn, 'convert'])) {
+        } else if (isset($this->__modelColumn) && is_callable([$this->__modelColumn, 'tryFrom'])) {
             // model column 匹配
             $modelColumn = call_user_func([$this->__modelColumn, 'tryFrom'], $field);
             if (!is_null($modelColumn)) {
