@@ -286,13 +286,13 @@ trait ModelFilter
         if (is_array($this->__modelColumn) && (isset($this->__modelColumn[$field]) || isset($this->__modelColumn[$fieldSnake]))) {
             // 快速匹配
             $field = value($this->__modelColumn[$field] ?? $this->__modelColumn[$fieldSnake]) ?: $field;
-        } else if (isset($this->__modelColumn) && is_callable([$this->__modelColumn, 'tryFrom'])) {
+        } else if (isset($this->__modelColumn) && is_callable([$this->__modelColumn, 'convert'])) {
             // model column 匹配
-            $modelColumn = call_user_func([$this->__modelColumn, 'tryFrom'], $field);
+            $modelColumn = call_user_func([$this->__modelColumn, 'convert'], $field);
             if (!is_null($modelColumn)) {
                 $field = $modelColumn->field() ?: $field;
             } else {
-                $field = call_user_func([$this->__modelColumn, 'tryFrom'], $fieldSnake)?->field() ?: $field;
+                $field = call_user_func([$this->__modelColumn, 'convert'], $fieldSnake)?->field() ?: $field;
             }
         }
         if ($field == $lastConvertField) {
