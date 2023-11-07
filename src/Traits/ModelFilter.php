@@ -141,7 +141,9 @@ trait ModelFilter
                         continue;
                     }
                     if (strpos($field, '.')) {
-                        [$with, $field] = explode('.', $field);
+                        $withArr = explode('.', $field);
+                        $with    = array_shift($withArr);
+                        $field   = implode('.', $withArr);
                         // 判断with是否存在
                         if (method_exists($this, $with)) {
                             $whereHas[$with][$field] = $val;
