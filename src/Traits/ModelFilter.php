@@ -145,7 +145,7 @@ trait ModelFilter
                         $with    = array_shift($withArr);
                         $field   = implode('.', $withArr);
                         // 判断with是否存在
-                        if (method_exists($this, $with)) {
+                        if (method_exists($query->getModel(), $with)) {
                             $whereHas[$with][$field] = $val;
                             continue;
                         }
