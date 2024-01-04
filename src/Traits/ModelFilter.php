@@ -17,6 +17,7 @@ use Illuminate\Validation\ValidationException;
  * @mixin Model
  * @method Builder|static modelFilter(ModelColumnFilterInterface|string|array|null $modelColumn = null)
  * @property ModelColumnFilterInterface $modelColumn
+ * @property string                     $filterFieldName      筛选字段
  * @property bool                       $checkFilterFieldDiff 是否开启检查筛选字段差异
  * @property bool                       $notValidFilterField  是否开启筛选字段验证
  * @method never throwFilterFieldDiffError(array $diffFields) 字段差异报错信息
@@ -59,7 +60,11 @@ trait ModelFilter
      */
     public function scopeModelFilter($query, string|array|null $modelColumn = null)
     {
-        $filter = request()?->input('__filter');
+        $filterFieldName = '__filter';
+        if (property_exists($this, 'filterFieldName')) {
+            $filterFieldName = $this->filterFieldName;
+        }
+        $filter = request()?->input($filterFieldName);
         if ($filter && is_array($filter)) {
             $this->__modelColumn = $modelColumn;
             if (property_exists($this, 'modelColumn')) {
