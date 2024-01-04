@@ -40,7 +40,12 @@ trait ModelSorter
             $sortDefault = $this->sortDefault;
         }
         $sorts = request()?->input($sortFieldName, $sortDefault);
-        if (property_exists($this, 'sortMerge') && $this->sortMerge && property_exists($this, 'sortDefault') && is_array($this->sortDefault)) {
+        if (
+            property_exists($this, 'sortMerge')
+            && $this->sortMerge
+            && property_exists($this, 'sortDefault')
+            && is_array($this->sortDefault)
+        ) {
             $sorts = [...$sorts, ...$sortDefault];
         }
         if ($sorts && is_array($sorts)) {
