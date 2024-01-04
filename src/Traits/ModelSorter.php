@@ -13,7 +13,10 @@ use Illuminate\Database\Eloquent\Builder;
 /**
  * @mixin Model
  * @method Builder|static modelSort(array $canSortField = [])
- * @property array $canSortField 可排序字段
+ * @property string $sortFieldName      排序字段
+ * @property array  $sortDefault        排序默认排序
+ * @property bool   $sortMerge          排序默认和请求合并
+ * @property array  $canSortField       可排序字段
  */
 trait ModelSorter
 {
@@ -27,8 +30,19 @@ trait ModelSorter
      */
     public function scopeModelSort($query, array $canSortField = [])
     {
-        $canSortField = $canSortField ?: $this->canSortField;
-        $sorts        = request()?->input('__sort');
+        $canSortField  = $canSortField ?: $this->canSortField;
+        $sortFieldName = '__sort';
+        if (property_exists($this, 'sortFieldName')) {
+            $sortFieldName = $this->sortFieldName;
+        }
+        $sortDefault = [];
+        if (property_exists($this, 'sortDefault') && is_array($this->sortDefault)) {
+            $sortDefault = $this->sortDefault;
+        }
+        $sorts = request()?->input($sortFieldName, $sortDefault);
+        if (property_exists($this, 'sortMerge') && $this->sortMerge && property_exists($this, 'sortDefault') && is_array($this->sortDefault)) {
+            $sorts = [...$sorts, ...$sortDefault];
+        }
         if ($sorts && is_array($sorts)) {
             foreach ($sorts as $field => $sort) {
                 if (empty($canSortField) || isset($canSortField[$field]) || in_array($field, $canSortField)) {
