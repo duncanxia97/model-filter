@@ -194,7 +194,6 @@ trait ModelFilter
                                 continue;
                             }
                             if (!is_numeric($k) && is_callable([$query, 'where' . Str::studly($k)])) {
-                                var_dump($k);
                                 $query->{'where' . Str::studly($k)}($field, $v, boolean: $boolean);
 
                                 continue;
