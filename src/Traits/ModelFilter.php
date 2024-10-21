@@ -217,7 +217,8 @@ trait ModelFilter
                     $query->where($field, $val, boolean: $boolean);
                 }
                 foreach ($whereHas as $with => $filter) {
-                    $query->whereHas($with, fn($q) => $this->queryFilter($q, $filter, $boolean, lastBoolean: $boolean));
+                    $query->has($with, '>=', 1, $boolean, fn($q) => $this->queryFilter($q, $filter, $boolean), );
+//                    $query->whereHas($with, fn($q) => $this->queryFilter($q, $filter, $boolean, lastBoolean: $boolean));
                 }
 
             },
